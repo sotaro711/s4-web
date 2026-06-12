@@ -17,15 +17,16 @@ jobs:
         with:
           python-version: "3.14"
       # S4 はローカル修正版が前提なので CI には入れない（solver グループを除外）。
+      # --frozen でロックファイルをそのまま使い、S4 のメタデータ解決を回避する。
       # S4 依存のテストは importorskip で自動スキップされる。
       - name: Install dependencies (without S4)
-        run: uv sync --no-default-groups --group dev
+        run: uv sync --frozen --no-default-groups --group dev
       - name: Lint
-        run: uv run ruff check .
+        run: uv run --no-sync ruff check .
       - name: Type check
-        run: uv run pyright
+        run: uv run --no-sync pyright
       - name: Test
-        run: uv run pytest -q
+        run: uv run --no-sync pytest -q
 
   frontend:
     runs-on: ubuntu-latest
