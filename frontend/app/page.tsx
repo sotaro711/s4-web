@@ -29,8 +29,8 @@ type Settings = Omit<SimulationRequest, "layers">;
 type Medium = { n: number; k: number };
 
 const DEFAULT_SETTINGS: Settings = {
-  wlMin: 400,
-  wlMax: 800,
+  wlMin: 380,
+  wlMax: 780,
   wlPoints: 81,
   thetaDeg: 0,
   pol: "s",
