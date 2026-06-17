@@ -175,7 +175,10 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               {result ? (
-                <SpectrumChart result={result} />
+                <>
+                  <ColorSwatch color={result.reflectedColor} />
+                  <SpectrumChart result={result} />
+                </>
               ) : (
                 <p className="text-sm text-neutral-400">
                   「計算する」を押すと結果が表示されます。
@@ -186,6 +189,27 @@ export default function Home() {
         </div>
       </div>
     </main>
+  );
+}
+
+function ColorSwatch({
+  color,
+}: {
+  color: { r: number; g: number; b: number; hex: string };
+}) {
+  return (
+    <div className="mb-4 flex items-center gap-3">
+      <div
+        className="h-12 w-12 rounded-md border"
+        style={{ backgroundColor: color.hex }}
+      />
+      <div className="text-sm">
+        <div className="font-semibold">反射色（構造色）</div>
+        <div className="text-neutral-500">
+          {color.hex} · RGB({color.r}, {color.g}, {color.b})
+        </div>
+      </div>
+    </div>
   );
 }
 

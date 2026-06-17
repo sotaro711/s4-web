@@ -42,6 +42,17 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ColorDTO */
+        ColorDTO: {
+            /** R */
+            r: number;
+            /** G */
+            g: number;
+            /** B */
+            b: number;
+            /** Hex */
+            hex: string;
+        };
         /** GratingDTO */
         GratingDTO: {
             /** N */
@@ -110,6 +121,7 @@ export interface components {
             R: number[];
             /** T */
             T: number[];
+            reflectedColor: components["schemas"]["ColorDTO"];
         };
         /** ValidationError */
         ValidationError: {
