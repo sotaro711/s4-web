@@ -1,11 +1,16 @@
 "use client";
 
+import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { EditableLayer, GratingDTO } from "@/lib/api/client";
 
 const DEFAULT_GRATING: GratingDTO = { n: 2.0, k: 0, fillFactor: 0.5 };
+
+// ペア挿入フォームの1層分（厚さ・n・k のみ）。
+type PairLayer = { thicknessNm: number; n: number; k: number };
 
 type Props = {
   layers: EditableLayer[];
@@ -17,6 +22,11 @@ function num(e: React.ChangeEvent<HTMLInputElement>): number {
 }
 
 export function LayerEditor({ layers, onChange }: Props) {
+  // ペア挿入フォームのローカル状態。
+  const [pairA, setPairA] = useState<PairLayer>({ thicknessNm: 100, n: 2.5, k: 0 });
+  const [pairB, setPairB] = useState<PairLayer>({ thicknessNm: 100, n: 1.5, k: 0 });
+  const [pairCount, setPairCount] = useState(5);
+
   const update = (i: number, patch: Partial<EditableLayer>) =>
     onChange(layers.map((l, idx) => (idx === i ? { ...l, ...patch } : l)));
 
@@ -48,6 +58,19 @@ export function LayerEditor({ layers, onChange }: Props) {
   const removeLayer = (i: number) => {
     if (layers.length <= 2) return; // 入射側 + 基板の最低2層は維持
     onChange(layers.filter((_, idx) => idx !== i));
+  };
+
+  const insertPairs = () => {
+    const n = Math.max(1, Math.floor(pairCount));
+    const block: EditableLayer[] = [];
+    for (let p = 0; p < n; p++) {
+      // [A, B] の順（A が入射側寄り）。入射側直下にまとめて積む。
+      block.push({ id: crypto.randomUUID(), name: "A", ...pairA, grating: null });
+      block.push({ id: crypto.randomUUID(), name: "B", ...pairB, grating: null });
+    }
+    const next = [...layers];
+    next.splice(1, 0, ...block);
+    onChange(next);
   };
 
   // 番号は基板側から数える（基板に接する膜が第1層、積み上げるほど大きい）。
@@ -151,6 +174,69 @@ export function LayerEditor({ layers, onChange }: Props) {
       <Button type="button" variant="outline" onClick={addLayer}>
         + 層を追加
       </Button>
+
+      {/* ペアをまとめて挿入（A,B を N 組、入射側直下に積み上げる） */}
+      <div className="rounded-lg border border-dashed p-3">
+        <p className="mb-2 text-sm font-semibold">ペアをまとめて挿入</p>
+        <PairRow label="層 A（上）" value={pairA} onChange={setPairA} />
+        <div className="mt-2">
+          <PairRow label="層 B（下）" value={pairB} onChange={setPairB} />
+        </div>
+        <div className="mt-3 flex items-end gap-2">
+          <div className="grid gap-1">
+            <Label className="text-xs text-neutral-500">ペア数</Label>
+            <Input
+              type="number"
+              min={1}
+              value={pairCount}
+              onChange={(e) => setPairCount(num(e))}
+              className="w-24"
+            />
+          </div>
+          <Button type="button" onClick={insertPairs}>
+            ペアを挿入
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PairRow({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: PairLayer;
+  onChange: (v: PairLayer) => void;
+}) {
+  return (
+    <div className="grid grid-cols-[auto_1fr_1fr_1fr] items-end gap-2">
+      <span className="pb-2 text-xs text-neutral-500">{label}</span>
+      <Field label="厚さ (nm)">
+        <Input
+          type="number"
+          value={value.thicknessNm}
+          onChange={(e) => onChange({ ...value, thicknessNm: num(e) })}
+        />
+      </Field>
+      <Field label="屈折率 n">
+        <Input
+          type="number"
+          step={0.01}
+          value={value.n}
+          onChange={(e) => onChange({ ...value, n: num(e) })}
+        />
+      </Field>
+      <Field label="消衰係数 k">
+        <Input
+          type="number"
+          step={0.01}
+          value={value.k}
+          onChange={(e) => onChange({ ...value, k: num(e) })}
+        />
+      </Field>
     </div>
   );
 }
