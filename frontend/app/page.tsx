@@ -50,7 +50,8 @@ const DEFAULT_FILMS: EditableLayer[] = [
   },
 ];
 
-const DEFAULT_ENV: Medium = { n: 1.0, k: 0 }; // 空気
+// 入射媒質は空気に固定（光が入ってくる側。UI には出さない）。
+const INCIDENT_AIR: Medium = { n: 1.0, k: 0 };
 const DEFAULT_SUBSTRATE: Medium = { n: 1.5, k: 0 }; // ガラス
 
 // Plotly はブラウザ専用なので SSR を無効化して読み込む。
@@ -61,14 +62,11 @@ const StructureView = dynamic(() => import("@/components/StructureView"), {
   ssr: false,
 });
 
-// 入射媒質・films・基板 から、API/描画用の層リスト（入射側→基板）を組み立てる。
-function buildLayers(
-  env: Medium,
-  films: EditableLayer[],
-  substrate: Medium,
-): LayerDTO[] {
+// films・基板 から、API/描画用の層リスト（入射側→基板）を組み立てる。
+// 入射側は空気に固定。
+function buildLayers(films: EditableLayer[], substrate: Medium): LayerDTO[] {
   return [
-    { name: "環境", thicknessNm: 0, n: env.n, k: env.k, grating: null },
+    { name: "空気", thicknessNm: 0, n: INCIDENT_AIR.n, k: INCIDENT_AIR.k, grating: null },
     ...films.map((l) => ({
       name: l.name,
       thicknessNm: l.thicknessNm,
@@ -82,7 +80,6 @@ function buildLayers(
 
 export default function Home() {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
-  const [env, setEnv] = useState<Medium>(DEFAULT_ENV);
   const [substrate, setSubstrate] = useState<Medium>(DEFAULT_SUBSTRATE);
   const [films, setFilms] = useState<EditableLayer[]>(DEFAULT_FILMS);
   const [result, setResult] = useState<SimulationResponse | null>(null);
@@ -98,7 +95,7 @@ export default function Home() {
     try {
       const body: SimulationRequest = {
         ...settings,
-        layers: buildLayers(env, films, substrate),
+        layers: buildLayers(films, substrate),
       };
       setResult(await simulate(body));
     } catch (e) {
@@ -130,17 +127,13 @@ export default function Home() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">層構成</CardTitle>
+              <CardTitle className="text-base">多層膜</CardTitle>
               <p className="text-xs text-neutral-400">
-                光は上（入射媒質）から入り、下（基板）へ抜けます。多層膜だけを
-                編集してください。
+                上が入射側（空気）、下が基板。多層膜を上に積み上げます。
               </p>
             </CardHeader>
             <CardContent className="grid gap-3">
-              <MediumRow label="入射媒質（環境）" value={env} onChange={setEnv} />
-              <div className="border-t pt-3">
-                <LayerEditor layers={films} onChange={setFilms} />
-              </div>
+              <LayerEditor layers={films} onChange={setFilms} />
               <div className="border-t pt-3">
                 <MediumRow label="基板" value={substrate} onChange={setSubstrate} />
               </div>
@@ -161,7 +154,7 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <StructureView
-                layers={buildLayers(env, films, substrate)}
+                layers={buildLayers(films, substrate)}
                 periodNm={settings.periodNm}
               />
             </CardContent>
