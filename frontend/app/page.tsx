@@ -62,11 +62,12 @@ const StructureView = dynamic(() => import("@/components/StructureView"), {
   ssr: false,
 });
 
-// films・基板 から、API/描画用の層リスト（入射側→基板）を組み立てる。
-// 入射側は空気に固定。
-function buildLayers(films: EditableLayer[], substrate: Medium): LayerDTO[] {
+// 多層膜 + 基板（断面図に表示する層。入射側の空気は含まない）。
+function structureLayers(
+  films: EditableLayer[],
+  substrate: Medium,
+): LayerDTO[] {
   return [
-    { name: "空気", thicknessNm: 0, n: INCIDENT_AIR.n, k: INCIDENT_AIR.k, grating: null },
     ...films.map((l) => ({
       name: l.name,
       thicknessNm: l.thicknessNm,
@@ -75,6 +76,14 @@ function buildLayers(films: EditableLayer[], substrate: Medium): LayerDTO[] {
       grating: l.grating,
     })),
     { name: "基板", thicknessNm: 0, n: substrate.n, k: substrate.k, grating: null },
+  ];
+}
+
+// API 用の層リスト（入射側→基板）。先頭に入射側の空気を付与する。
+function buildLayers(films: EditableLayer[], substrate: Medium): LayerDTO[] {
+  return [
+    { name: "空気", thicknessNm: 0, n: INCIDENT_AIR.n, k: INCIDENT_AIR.k, grating: null },
+    ...structureLayers(films, substrate),
   ];
 }
 
@@ -154,7 +163,7 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <StructureView
-                layers={buildLayers(films, substrate)}
+                layers={structureLayers(films, substrate)}
                 periodNm={settings.periodNm}
               />
             </CardContent>
