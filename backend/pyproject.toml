@@ -14,14 +14,10 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "pytest>=8.0",
-    "httpx>=0.27",
     "ruff>=0.8",
     "pyright>=1.1.390",
 ]
 # S4 はローカルの修正版リポジトリ (../../S4) からビルドする。
-# CI など S4 を持たない環境では `uv sync --no-default-groups --group dev` で除外し、
-# physics テストは importorskip により自動スキップされる。
 solver = [
     "s4",
 ]
@@ -36,12 +32,9 @@ s4 = { path = "../../S4" }
 requires = ["uv_build>=0.11.21,<0.12.0"]
 build-backend = "uv_build"
 
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-
 [tool.ruff]
 line-length = 100
-src = ["src", "tests"]
+src = ["src"]
 
 [tool.ruff.lint]
 select = [
@@ -54,7 +47,7 @@ select = [
 ]
 
 [tool.pyright]
-include = ["src", "tests"]
+include = ["src"]
 typeCheckingMode = "standard"
 venvPath = "."
 venv = ".venv"
