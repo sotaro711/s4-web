@@ -9,8 +9,8 @@ import type { EditableLayer, GratingDTO } from "@/lib/api/client";
 
 const DEFAULT_GRATING: GratingDTO = { n: 2.0, k: 0, fillFactor: 0.5 };
 
-// ペア挿入フォームの1層分（厚さ・n・k のみ）。
-type PairLayer = { thicknessNm: number; n: number; k: number };
+// ペア挿入フォームの1層分（名前・厚さ・n・k）。
+type PairLayer = { name: string; thicknessNm: number; n: number; k: number };
 
 type Props = {
   layers: EditableLayer[];
@@ -23,8 +23,8 @@ function num(e: React.ChangeEvent<HTMLInputElement>): number {
 
 export function LayerEditor({ layers, onChange }: Props) {
   // ペア挿入フォームのローカル状態。
-  const [pairA, setPairA] = useState<PairLayer>({ thicknessNm: 100, n: 2.5, k: 0 });
-  const [pairB, setPairB] = useState<PairLayer>({ thicknessNm: 100, n: 1.5, k: 0 });
+  const [pairA, setPairA] = useState<PairLayer>({ name: "A", thicknessNm: 100, n: 2.5, k: 0 });
+  const [pairB, setPairB] = useState<PairLayer>({ name: "B", thicknessNm: 100, n: 1.5, k: 0 });
   const [pairCount, setPairCount] = useState(5);
 
   const update = (i: number, patch: Partial<EditableLayer>) =>
@@ -65,8 +65,8 @@ export function LayerEditor({ layers, onChange }: Props) {
     const block: EditableLayer[] = [];
     for (let p = 0; p < n; p++) {
       // [A, B] の順（A が入射側寄り）。入射側直下にまとめて積む。
-      block.push({ id: crypto.randomUUID(), name: "A", ...pairA, grating: null });
-      block.push({ id: crypto.randomUUID(), name: "B", ...pairB, grating: null });
+      block.push({ id: crypto.randomUUID(), ...pairA, grating: null });
+      block.push({ id: crypto.randomUUID(), ...pairB, grating: null });
     }
     const next = [...layers];
     next.splice(1, 0, ...block);
@@ -212,8 +212,14 @@ function PairRow({
   onChange: (v: PairLayer) => void;
 }) {
   return (
-    <div className="grid grid-cols-[auto_1fr_1fr_1fr] items-end gap-2">
+    <div className="grid grid-cols-[auto_1fr_1fr_1fr_1fr] items-end gap-2">
       <span className="pb-2 text-xs text-neutral-500">{label}</span>
+      <Field label="名前">
+        <Input
+          value={value.name}
+          onChange={(e) => onChange({ ...value, name: e.target.value })}
+        />
+      </Field>
       <Field label="厚さ (nm)">
         <Input
           type="number"
