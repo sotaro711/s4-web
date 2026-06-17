@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useState } from "react";
 
 import { LayerEditor } from "@/components/LayerEditor";
+import { NumberInput } from "@/components/NumberInput";
 import { SettingsForm } from "@/components/SettingsForm";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,7 +13,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   simulate,
@@ -203,20 +203,18 @@ function MediumRow({
       <span className="pb-2 text-sm font-semibold">{label}</span>
       <div className="grid gap-1">
         <Label className="text-xs text-neutral-500">屈折率 n</Label>
-        <Input
-          type="number"
+        <NumberInput
           step={0.01}
           value={value.n}
-          onChange={(e) => onChange({ ...value, n: Number(e.target.value) })}
+          onChange={(n) => onChange({ ...value, n })}
         />
       </div>
       <div className="grid gap-1">
         <Label className="text-xs text-neutral-500">消衰係数 k</Label>
-        <Input
-          type="number"
+        <NumberInput
           step={0.01}
           value={value.k}
-          onChange={(e) => onChange({ ...value, k: Number(e.target.value) })}
+          onChange={(k) => onChange({ ...value, k })}
         />
       </div>
     </div>

@@ -1,7 +1,7 @@
 "use client";
 
+import { NumberInput } from "@/components/NumberInput";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -35,13 +35,7 @@ function NumberField({
   return (
     <div className="grid gap-1.5">
       <Label className="text-xs text-neutral-500">{label}</Label>
-      <Input
-        type="number"
-        value={value}
-        step={step}
-        min={min}
-        onChange={(e) => onChange(Number(e.target.value))}
-      />
+      <NumberInput value={value} step={step} min={min} onChange={onChange} />
     </div>
   );
 }

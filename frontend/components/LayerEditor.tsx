@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { NumberInput } from "@/components/NumberInput";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,10 +17,6 @@ type Props = {
   layers: EditableLayer[];
   onChange: (layers: EditableLayer[]) => void;
 };
-
-function num(e: React.ChangeEvent<HTMLInputElement>): number {
-  return Number(e.target.value);
-}
 
 export function LayerEditor({ layers, onChange }: Props) {
   // ペア挿入フォームのローカル状態。
@@ -97,26 +94,23 @@ export function LayerEditor({ layers, onChange }: Props) {
               />
             </Field>
             <Field label="厚さ (nm)">
-              <Input
-                type="number"
+              <NumberInput
                 value={layer.thicknessNm}
-                onChange={(e) => update(i, { thicknessNm: num(e) })}
+                onChange={(v) => update(i, { thicknessNm: v })}
               />
             </Field>
             <Field label="屈折率 n">
-              <Input
-                type="number"
+              <NumberInput
                 step={0.01}
                 value={layer.n}
-                onChange={(e) => update(i, { n: num(e) })}
+                onChange={(v) => update(i, { n: v })}
               />
             </Field>
             <Field label="消衰係数 k">
-              <Input
-                type="number"
+              <NumberInput
                 step={0.01}
                 value={layer.k}
-                onChange={(e) => update(i, { k: num(e) })}
+                onChange={(v) => update(i, { k: v })}
               />
             </Field>
           </div>
@@ -133,29 +127,26 @@ export function LayerEditor({ layers, onChange }: Props) {
           {layer.grating != null && (
             <div className="mt-2 grid grid-cols-3 gap-2 rounded-md bg-neutral-50 p-2">
               <Field label="格子 n">
-                <Input
-                  type="number"
+                <NumberInput
                   step={0.01}
                   value={layer.grating.n}
-                  onChange={(e) => updateGrating(i, { n: num(e) })}
+                  onChange={(v) => updateGrating(i, { n: v })}
                 />
               </Field>
               <Field label="格子 k">
-                <Input
-                  type="number"
+                <NumberInput
                   step={0.01}
                   value={layer.grating.k}
-                  onChange={(e) => updateGrating(i, { k: num(e) })}
+                  onChange={(v) => updateGrating(i, { k: v })}
                 />
               </Field>
               <Field label="fill factor">
-                <Input
-                  type="number"
+                <NumberInput
                   step={0.05}
                   min={0}
                   max={1}
                   value={layer.grating.fillFactor}
-                  onChange={(e) => updateGrating(i, { fillFactor: num(e) })}
+                  onChange={(v) => updateGrating(i, { fillFactor: v })}
                 />
               </Field>
             </div>
@@ -177,11 +168,10 @@ export function LayerEditor({ layers, onChange }: Props) {
         <div className="mt-3 flex items-end gap-2">
           <div className="grid gap-1">
             <Label className="text-xs text-neutral-500">ペア数</Label>
-            <Input
-              type="number"
+            <NumberInput
               min={1}
               value={pairCount}
-              onChange={(e) => setPairCount(num(e))}
+              onChange={setPairCount}
               className="w-24"
             />
           </div>
@@ -213,26 +203,23 @@ function PairRow({
         />
       </Field>
       <Field label="厚さ (nm)">
-        <Input
-          type="number"
+        <NumberInput
           value={value.thicknessNm}
-          onChange={(e) => onChange({ ...value, thicknessNm: num(e) })}
+          onChange={(v) => onChange({ ...value, thicknessNm: v })}
         />
       </Field>
       <Field label="屈折率 n">
-        <Input
-          type="number"
+        <NumberInput
           step={0.01}
           value={value.n}
-          onChange={(e) => onChange({ ...value, n: num(e) })}
+          onChange={(v) => onChange({ ...value, n: v })}
         />
       </Field>
       <Field label="消衰係数 k">
-        <Input
-          type="number"
+        <NumberInput
           step={0.01}
           value={value.k}
-          onChange={(e) => onChange({ ...value, k: num(e) })}
+          onChange={(v) => onChange({ ...value, k: v })}
         />
       </Field>
     </div>
