@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState } from "react";
 
 import { LayerEditor } from "@/components/LayerEditor";
@@ -16,6 +17,14 @@ import {
   type SimulationRequest,
   type SimulationResponse,
 } from "@/lib/api/client";
+
+// Plotly はブラウザ専用なので SSR を無効化して読み込む。
+const SpectrumChart = dynamic(() => import("@/components/SpectrumChart"), {
+  ssr: false,
+});
+const StructureView = dynamic(() => import("@/components/StructureView"), {
+  ssr: false,
+});
 
 const DEFAULT_REQUEST: SimulationRequest = {
   wlMin: 400,
@@ -100,23 +109,32 @@ export default function Home() {
           {error && <p className="text-sm text-red-600">エラー: {error}</p>}
         </div>
 
-        {/* 右：結果（グラフは次ステップ。今は JSON 表示） */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">スペクトル</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {result ? (
-              <pre className="max-h-[70vh] overflow-auto rounded-md bg-neutral-100 p-4 text-xs">
-                {JSON.stringify(result, null, 2)}
-              </pre>
-            ) : (
-              <p className="text-sm text-neutral-400">
-                「計算する」を押すと結果が表示されます。
-              </p>
-            )}
-          </CardContent>
-        </Card>
+        {/* 右：構造の断面図（常時）とスペクトル（計算後） */}
+        <div className="grid gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">構造の断面図</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <StructureView layers={req.layers} periodNm={req.periodNm} />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">スペクトル</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {result ? (
+                <SpectrumChart result={result} />
+              ) : (
+                <p className="text-sm text-neutral-400">
+                  「計算する」を押すと結果が表示されます。
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </main>
   );
