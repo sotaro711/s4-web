@@ -13,6 +13,9 @@ export type LayerDTO = components["schemas"]["LayerDTO"];
 export type GratingDTO = components["schemas"]["GratingDTO"];
 export type Polarization = components["schemas"]["Polarization"];
 
+// エディタ内部用：React の安定キーのため id を持つ層。API 送信時に id を外す。
+export type EditableLayer = LayerDTO & { id: string };
+
 /** シミュレーションを実行する。失敗時は detail を含む Error を投げる。 */
 export async function simulate(
   body: SimulationRequest,

@@ -11,9 +11,12 @@ import {
 } from "@/components/ui/select";
 import type { Polarization, SimulationRequest } from "@/lib/api/client";
 
+// 計算条件のスカラー部分のみ（層は LayerEditor が担当）。
+type SettingsValue = Omit<SimulationRequest, "layers">;
+
 type Props = {
-  value: SimulationRequest;
-  onChange: (patch: Partial<SimulationRequest>) => void;
+  value: SettingsValue;
+  onChange: (patch: Partial<SettingsValue>) => void;
 };
 
 function NumberField({

@@ -14,9 +14,15 @@ import {
 } from "@/components/ui/card";
 import {
   simulate,
+  type EditableLayer,
   type SimulationRequest,
   type SimulationResponse,
 } from "@/lib/api/client";
+
+// 層に安定キー用 id を持たせた編集用のリクエスト型。
+type EditableRequest = Omit<SimulationRequest, "layers"> & {
+  layers: EditableLayer[];
+};
 
 // Plotly はブラウザ専用なので SSR を無効化して読み込む。
 const SpectrumChart = dynamic(() => import("@/components/SpectrumChart"), {
@@ -26,7 +32,8 @@ const StructureView = dynamic(() => import("@/components/StructureView"), {
   ssr: false,
 });
 
-const DEFAULT_REQUEST: SimulationRequest = {
+// 既定構造。default の層 id は固定（SSR/ハイドレーションのズレを避ける）。
+const DEFAULT_REQUEST: EditableRequest = {
   wlMin: 400,
   wlMax: 800,
   wlPoints: 81,
@@ -35,32 +42,44 @@ const DEFAULT_REQUEST: SimulationRequest = {
   periodNm: 500,
   numOrders: 11,
   layers: [
-    { name: "air", thicknessNm: 0, n: 1.0, k: 0 },
+    { id: "default-air", name: "air", thicknessNm: 0, n: 1.0, k: 0 },
     {
+      id: "default-grating",
       name: "grating",
       thicknessNm: 150,
       n: 1.0,
       k: 0,
       grating: { n: 2.5, k: 0, fillFactor: 0.5 },
     },
-    { name: "glass", thicknessNm: 0, n: 1.5, k: 0 },
+    { id: "default-glass", name: "glass", thicknessNm: 0, n: 1.5, k: 0 },
   ],
 };
 
 export default function Home() {
-  const [req, setReq] = useState<SimulationRequest>(DEFAULT_REQUEST);
+  const [req, setReq] = useState<EditableRequest>(DEFAULT_REQUEST);
   const [result, setResult] = useState<SimulationResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const patch = (p: Partial<SimulationRequest>) =>
+  const patch = (p: Partial<EditableRequest>) =>
     setReq((r) => ({ ...r, ...p }));
 
   const run = async () => {
     setLoading(true);
     setError(null);
     try {
-      setResult(await simulate(req));
+      // API 送信時に編集用の id を取り除く。
+      const body: SimulationRequest = {
+        ...req,
+        layers: req.layers.map((l) => ({
+          name: l.name,
+          thicknessNm: l.thicknessNm,
+          n: l.n,
+          k: l.k,
+          grating: l.grating,
+        })),
+      };
+      setResult(await simulate(body));
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
       setResult(null);

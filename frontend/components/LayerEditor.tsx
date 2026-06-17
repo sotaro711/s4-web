@@ -3,13 +3,13 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { GratingDTO, LayerDTO } from "@/lib/api/client";
+import type { EditableLayer, GratingDTO } from "@/lib/api/client";
 
 const DEFAULT_GRATING: GratingDTO = { n: 2.0, k: 0, fillFactor: 0.5 };
 
 type Props = {
-  layers: LayerDTO[];
-  onChange: (layers: LayerDTO[]) => void;
+  layers: EditableLayer[];
+  onChange: (layers: EditableLayer[]) => void;
 };
 
 function num(e: React.ChangeEvent<HTMLInputElement>): number {
@@ -17,7 +17,7 @@ function num(e: React.ChangeEvent<HTMLInputElement>): number {
 }
 
 export function LayerEditor({ layers, onChange }: Props) {
-  const update = (i: number, patch: Partial<LayerDTO>) =>
+  const update = (i: number, patch: Partial<EditableLayer>) =>
     onChange(layers.map((l, idx) => (idx === i ? { ...l, ...patch } : l)));
 
   const updateGrating = (i: number, patch: Partial<GratingDTO>) => {
@@ -29,16 +29,19 @@ export function LayerEditor({ layers, onChange }: Props) {
     update(i, { grating: on ? { ...DEFAULT_GRATING } : null });
 
   const addLayer = () => {
-    const inserted: LayerDTO = {
-      name: `layer${layers.length}`,
+    // 基板の上に積み上げる：新しい層を入射側（先頭）の直下に挿入する。
+    // → 最後に足した層ほど入射側に近く、番号は基板側から増える。
+    const nextNumber = layers.length - 1; // 既存の中間層数 + 1
+    const inserted: EditableLayer = {
+      id: crypto.randomUUID(),
+      name: `film${nextNumber}`,
       thicknessNm: 100,
       n: 1.5,
       k: 0,
       grating: null,
     };
-    // 新しい層を基板（末尾）の直前に挿入する。
     const next = [...layers];
-    next.splice(Math.max(1, next.length - 1), 0, inserted);
+    next.splice(1, 0, inserted);
     onChange(next);
   };
 
@@ -47,13 +50,18 @@ export function LayerEditor({ layers, onChange }: Props) {
     onChange(layers.filter((_, idx) => idx !== i));
   };
 
+  // 番号は基板側から数える（基板に接する膜が第1層、積み上げるほど大きい）。
   const roleOf = (i: number) =>
-    i === 0 ? "入射側" : i === layers.length - 1 ? "基板" : `第${i}層`;
+    i === 0
+      ? "入射側"
+      : i === layers.length - 1
+        ? "基板"
+        : `第${layers.length - 1 - i}層`;
 
   return (
     <div className="grid gap-3">
       {layers.map((layer, i) => (
-        <div key={i} className="rounded-lg border p-3">
+        <div key={layer.id} className="rounded-lg border p-3">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-sm font-semibold">{roleOf(i)}</span>
             <button
