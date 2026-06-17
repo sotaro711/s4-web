@@ -122,7 +122,7 @@ export default function Home() {
         多層膜・1D グレーティング構造の反射 / 透過スペクトルを計算します。
       </p>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(420px,460px)_1fr]">
+      <div className="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(420px,460px)_1fr]">
         {/* 左：入力 */}
         <div className="grid gap-6">
           <Card>
@@ -155,8 +155,8 @@ export default function Home() {
           {error && <p className="text-sm text-red-600">エラー: {error}</p>}
         </div>
 
-        {/* 右：構造の断面図（常時）とスペクトル（計算後） */}
-        <div className="grid gap-6">
+        {/* 右：構造の断面図（常時）とスペクトル（計算後）。スクロール追従させる。 */}
+        <div className="grid gap-6 lg:sticky lg:top-6 lg:self-start">
           <Card>
             <CardHeader>
               <CardTitle className="text-base">構造の断面図</CardTitle>
