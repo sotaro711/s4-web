@@ -1,0 +1,284 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "S4 RCWA Simulator API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/simulate": {
+      "post": {
+        "summary": "Simulate",
+        "operationId": "simulate_api_simulate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimulationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimulationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_api_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health Api Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "GratingDTO": {
+        "properties": {
+          "n": {
+            "type": "number",
+            "title": "N"
+          },
+          "k": {
+            "type": "number",
+            "title": "K",
+            "default": 0.0
+          },
+          "fillFactor": {
+            "type": "number",
+            "title": "Fillfactor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "n",
+          "fillFactor"
+        ],
+        "title": "GratingDTO"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "LayerDTO": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "thicknessNm": {
+            "type": "number",
+            "title": "Thicknessnm"
+          },
+          "n": {
+            "type": "number",
+            "title": "N"
+          },
+          "k": {
+            "type": "number",
+            "title": "K",
+            "default": 0.0
+          },
+          "grating": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GratingDTO"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "thicknessNm",
+          "n"
+        ],
+        "title": "LayerDTO"
+      },
+      "Polarization": {
+        "type": "string",
+        "enum": [
+          "s",
+          "p"
+        ],
+        "title": "Polarization",
+        "description": "偏光。S=TE、P=TM。"
+      },
+      "SimulationRequest": {
+        "properties": {
+          "wlMin": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Wlmin"
+          },
+          "wlMax": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Wlmax"
+          },
+          "wlPoints": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Wlpoints"
+          },
+          "thetaDeg": {
+            "type": "number",
+            "title": "Thetadeg",
+            "default": 0.0
+          },
+          "pol": {
+            "$ref": "#/components/schemas/Polarization",
+            "default": "s"
+          },
+          "periodNm": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Periodnm"
+          },
+          "numOrders": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Numorders"
+          },
+          "layers": {
+            "items": {
+              "$ref": "#/components/schemas/LayerDTO"
+            },
+            "type": "array",
+            "minItems": 2,
+            "title": "Layers"
+          }
+        },
+        "type": "object",
+        "required": [
+          "wlMin",
+          "wlMax",
+          "wlPoints",
+          "periodNm",
+          "numOrders",
+          "layers"
+        ],
+        "title": "SimulationRequest"
+      },
+      "SimulationResponse": {
+        "properties": {
+          "wavelengths": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Wavelengths"
+          },
+          "R": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "R"
+          },
+          "T": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "T"
+          }
+        },
+        "type": "object",
+        "required": [
+          "wavelengths",
+          "R",
+          "T"
+        ],
+        "title": "SimulationResponse"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
