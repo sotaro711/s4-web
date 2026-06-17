@@ -6,6 +6,7 @@ S4 の import を関数内に閉じ込めることで、S4 未導入の環境（
 アプリ本体や API は import できる（ソルバーを差し替えれば動作する）。
 """
 
+from s4web.domain.ports.colorimetry_port import ColorimetryPort
 from s4web.domain.ports.solver_port import SolverPort
 
 
@@ -13,3 +14,11 @@ def get_solver() -> SolverPort:
     from s4web.infrastructure.solvers.s4_solver import S4Solver
 
     return S4Solver()
+
+
+def get_colorimetry() -> ColorimetryPort:
+    from s4web.infrastructure.colorimetry.colour_science import (
+        ColourScienceColorimetry,
+    )
+
+    return ColourScienceColorimetry()

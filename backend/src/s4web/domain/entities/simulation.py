@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 from enum import StrEnum
 
+from s4web.domain.entities.color import ColorResult
 from s4web.domain.entities.layer import Layer
 
 
@@ -70,3 +71,11 @@ class Spectrum:
             raise ValueError(
                 "wavelengths, reflectance, transmittance must have equal length"
             )
+
+
+@dataclass(frozen=True)
+class SimulationOutcome:
+    """シミュレーション結果一式（スペクトル + 反射色）。"""
+
+    spectrum: Spectrum
+    reflected_color: ColorResult

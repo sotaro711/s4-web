@@ -1,16 +1,18 @@
 """シミュレーション実行ユースケース。"""
 
-from s4web.domain.entities.simulation import SimulationCondition, Spectrum
+from s4web.domain.entities.simulation import SimulationCondition, SimulationOutcome
+from s4web.domain.ports.colorimetry_port import ColorimetryPort
 from s4web.domain.ports.solver_port import SolverPort
 
 
 class RunSimulationUseCase:
-    """注入されたソルバーを通して RCWA シミュレーションを実行する。"""
+    """ソルバーで R/T を計算し、反射スペクトルから色を求める。"""
 
-    def __init__(self, solver: SolverPort) -> None:
+    def __init__(self, solver: SolverPort, colorimetry: ColorimetryPort) -> None:
         self._solver = solver
+        self._colorimetry = colorimetry
 
-    def execute(self, condition: SimulationCondition) -> Spectrum:
+    def execute(self, condition: SimulationCondition) -> SimulationOutcome:
         spectrum = self._solver.solve(condition)
         if len(spectrum.wavelengths_nm) != condition.wl_points:
             raise RuntimeError(
@@ -18,4 +20,7 @@ class RunSimulationUseCase:
                 f"({len(spectrum.wavelengths_nm)}) does not match the "
                 f"requested wl_points ({condition.wl_points})"
             )
-        return spectrum
+        reflected_color = self._colorimetry.reflectance_to_srgb(
+            spectrum.wavelengths_nm, spectrum.reflectance
+        )
+        return SimulationOutcome(spectrum=spectrum, reflected_color=reflected_color)

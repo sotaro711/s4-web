@@ -68,6 +68,34 @@
   },
   "components": {
     "schemas": {
+      "ColorDTO": {
+        "properties": {
+          "r": {
+            "type": "integer",
+            "title": "R"
+          },
+          "g": {
+            "type": "integer",
+            "title": "G"
+          },
+          "b": {
+            "type": "integer",
+            "title": "B"
+          },
+          "hex": {
+            "type": "string",
+            "title": "Hex"
+          }
+        },
+        "type": "object",
+        "required": [
+          "r",
+          "g",
+          "b",
+          "hex"
+        ],
+        "title": "ColorDTO"
+      },
       "GratingDTO": {
         "properties": {
           "n": {
@@ -229,13 +257,17 @@
             },
             "type": "array",
             "title": "T"
+          },
+          "reflectedColor": {
+            "$ref": "#/components/schemas/ColorDTO"
           }
         },
         "type": "object",
         "required": [
           "wavelengths",
           "R",
-          "T"
+          "T",
+          "reflectedColor"
         ],
         "title": "SimulationResponse"
       },

@@ -9,12 +9,13 @@ from __future__ import annotations
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
+from s4web.domain.entities.color import ColorResult
 from s4web.domain.entities.layer import Grating, Layer
 from s4web.domain.entities.material import Material
 from s4web.domain.entities.simulation import (
     Polarization,
     SimulationCondition,
-    Spectrum,
+    SimulationOutcome,
 )
 
 
@@ -73,16 +74,29 @@ class SimulationRequest(_CamelModel):
         )
 
 
+class ColorDTO(BaseModel):
+    r: int
+    g: int
+    b: int
+    hex: str
+
+    @classmethod
+    def from_color(cls, c: ColorResult) -> ColorDTO:
+        return cls(r=c.r, g=c.g, b=c.b, hex=c.hex)
+
+
 class SimulationResponse(BaseModel):
     # フロントのグラフがそのまま使えるよう、キーは wavelengths / R / T。
     wavelengths: list[float]
     R: list[float]
     T: list[float]
+    reflected_color: ColorDTO = Field(serialization_alias="reflectedColor")
 
     @classmethod
-    def from_spectrum(cls, spectrum: Spectrum) -> SimulationResponse:
+    def from_outcome(cls, outcome: SimulationOutcome) -> SimulationResponse:
         return cls(
-            wavelengths=list(spectrum.wavelengths_nm),
-            R=list(spectrum.reflectance),
-            T=list(spectrum.transmittance),
+            wavelengths=list(outcome.spectrum.wavelengths_nm),
+            R=list(outcome.spectrum.reflectance),
+            T=list(outcome.spectrum.transmittance),
+            reflected_color=ColorDTO.from_color(outcome.reflected_color),
         )
