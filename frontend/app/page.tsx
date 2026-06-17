@@ -12,17 +12,46 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   simulate,
   type EditableLayer,
+  type LayerDTO,
   type SimulationRequest,
   type SimulationResponse,
 } from "@/lib/api/client";
 
-// 層に安定キー用 id を持たせた編集用のリクエスト型。
-type EditableRequest = Omit<SimulationRequest, "layers"> & {
-  layers: EditableLayer[];
+// 計算条件のスカラー部分（層・媒質を除く）。
+type Settings = Omit<SimulationRequest, "layers">;
+
+// 入射媒質・基板（半無限）の光学定数。
+type Medium = { n: number; k: number };
+
+const DEFAULT_SETTINGS: Settings = {
+  wlMin: 400,
+  wlMax: 800,
+  wlPoints: 81,
+  thetaDeg: 0,
+  pol: "s",
+  periodNm: 500,
+  numOrders: 11,
 };
+
+// 既定の多層膜（films）。id は固定（SSR/ハイドレーションのズレ回避）。
+const DEFAULT_FILMS: EditableLayer[] = [
+  {
+    id: "default-grating",
+    name: "grating",
+    thicknessNm: 150,
+    n: 1.0,
+    k: 0,
+    grating: { n: 2.5, k: 0, fillFactor: 0.5 },
+  },
+];
+
+const DEFAULT_ENV: Medium = { n: 1.0, k: 0 }; // 空気
+const DEFAULT_SUBSTRATE: Medium = { n: 1.5, k: 0 }; // ガラス
 
 // Plotly はブラウザ専用なので SSR を無効化して読み込む。
 const SpectrumChart = dynamic(() => import("@/components/SpectrumChart"), {
@@ -32,52 +61,44 @@ const StructureView = dynamic(() => import("@/components/StructureView"), {
   ssr: false,
 });
 
-// 既定構造。default の層 id は固定（SSR/ハイドレーションのズレを避ける）。
-const DEFAULT_REQUEST: EditableRequest = {
-  wlMin: 400,
-  wlMax: 800,
-  wlPoints: 81,
-  thetaDeg: 0,
-  pol: "s",
-  periodNm: 500,
-  numOrders: 11,
-  layers: [
-    { id: "default-air", name: "air", thicknessNm: 0, n: 1.0, k: 0 },
-    {
-      id: "default-grating",
-      name: "grating",
-      thicknessNm: 150,
-      n: 1.0,
-      k: 0,
-      grating: { n: 2.5, k: 0, fillFactor: 0.5 },
-    },
-    { id: "default-glass", name: "glass", thicknessNm: 0, n: 1.5, k: 0 },
-  ],
-};
+// 入射媒質・films・基板 から、API/描画用の層リスト（入射側→基板）を組み立てる。
+function buildLayers(
+  env: Medium,
+  films: EditableLayer[],
+  substrate: Medium,
+): LayerDTO[] {
+  return [
+    { name: "環境", thicknessNm: 0, n: env.n, k: env.k, grating: null },
+    ...films.map((l) => ({
+      name: l.name,
+      thicknessNm: l.thicknessNm,
+      n: l.n,
+      k: l.k,
+      grating: l.grating,
+    })),
+    { name: "基板", thicknessNm: 0, n: substrate.n, k: substrate.k, grating: null },
+  ];
+}
 
 export default function Home() {
-  const [req, setReq] = useState<EditableRequest>(DEFAULT_REQUEST);
+  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
+  const [env, setEnv] = useState<Medium>(DEFAULT_ENV);
+  const [substrate, setSubstrate] = useState<Medium>(DEFAULT_SUBSTRATE);
+  const [films, setFilms] = useState<EditableLayer[]>(DEFAULT_FILMS);
   const [result, setResult] = useState<SimulationResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const patch = (p: Partial<EditableRequest>) =>
-    setReq((r) => ({ ...r, ...p }));
+  const patchSettings = (p: Partial<Settings>) =>
+    setSettings((s) => ({ ...s, ...p }));
 
   const run = async () => {
     setLoading(true);
     setError(null);
     try {
-      // API 送信時に編集用の id を取り除く。
       const body: SimulationRequest = {
-        ...req,
-        layers: req.layers.map((l) => ({
-          name: l.name,
-          thicknessNm: l.thicknessNm,
-          n: l.n,
-          k: l.k,
-          grating: l.grating,
-        })),
+        ...settings,
+        layers: buildLayers(env, films, substrate),
       };
       setResult(await simulate(body));
     } catch (e) {
@@ -103,7 +124,7 @@ export default function Home() {
               <CardTitle className="text-base">計算条件</CardTitle>
             </CardHeader>
             <CardContent>
-              <SettingsForm value={req} onChange={patch} />
+              <SettingsForm value={settings} onChange={patchSettings} />
             </CardContent>
           </Card>
 
@@ -111,14 +132,18 @@ export default function Home() {
             <CardHeader>
               <CardTitle className="text-base">層構成</CardTitle>
               <p className="text-xs text-neutral-400">
-                先頭が入射側、末尾が基板。半無限媒質は厚さ 0。
+                光は上（入射媒質）から入り、下（基板）へ抜けます。多層膜だけを
+                編集してください。
               </p>
             </CardHeader>
-            <CardContent>
-              <LayerEditor
-                layers={req.layers}
-                onChange={(layers) => patch({ layers })}
-              />
+            <CardContent className="grid gap-3">
+              <MediumRow label="入射媒質（環境）" value={env} onChange={setEnv} />
+              <div className="border-t pt-3">
+                <LayerEditor layers={films} onChange={setFilms} />
+              </div>
+              <div className="border-t pt-3">
+                <MediumRow label="基板" value={substrate} onChange={setSubstrate} />
+              </div>
             </CardContent>
           </Card>
 
@@ -135,7 +160,10 @@ export default function Home() {
               <CardTitle className="text-base">構造の断面図</CardTitle>
             </CardHeader>
             <CardContent>
-              <StructureView layers={req.layers} periodNm={req.periodNm} />
+              <StructureView
+                layers={buildLayers(env, films, substrate)}
+                periodNm={settings.periodNm}
+              />
             </CardContent>
           </Card>
 
@@ -156,5 +184,39 @@ export default function Home() {
         </div>
       </div>
     </main>
+  );
+}
+
+function MediumRow({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: Medium;
+  onChange: (v: Medium) => void;
+}) {
+  return (
+    <div className="grid grid-cols-[1fr_1fr_1fr] items-end gap-2">
+      <span className="pb-2 text-sm font-semibold">{label}</span>
+      <div className="grid gap-1">
+        <Label className="text-xs text-neutral-500">屈折率 n</Label>
+        <Input
+          type="number"
+          step={0.01}
+          value={value.n}
+          onChange={(e) => onChange({ ...value, n: Number(e.target.value) })}
+        />
+      </div>
+      <div className="grid gap-1">
+        <Label className="text-xs text-neutral-500">消衰係数 k</Label>
+        <Input
+          type="number"
+          step={0.01}
+          value={value.k}
+          onChange={(e) => onChange({ ...value, k: Number(e.target.value) })}
+        />
+      </div>
+    </div>
   );
 }

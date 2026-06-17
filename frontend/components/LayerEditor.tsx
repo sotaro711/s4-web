@@ -39,50 +39,43 @@ export function LayerEditor({ layers, onChange }: Props) {
     update(i, { grating: on ? { ...DEFAULT_GRATING } : null });
 
   const addLayer = () => {
-    // 基板の上に積み上げる：新しい層を入射側（先頭）の直下に挿入する。
-    // → 最後に足した層ほど入射側に近く、番号は基板側から増える。
-    const nextNumber = layers.length - 1; // 既存の中間層数 + 1
+    // 積み上げ：新しい層をスタックの一番上（入射側寄り＝先頭）に追加する。
     const inserted: EditableLayer = {
       id: crypto.randomUUID(),
-      name: `film${nextNumber}`,
+      name: `film${layers.length + 1}`,
       thicknessNm: 100,
       n: 1.5,
       k: 0,
       grating: null,
     };
-    const next = [...layers];
-    next.splice(1, 0, inserted);
-    onChange(next);
+    onChange([inserted, ...layers]);
   };
 
-  const removeLayer = (i: number) => {
-    if (layers.length <= 2) return; // 入射側 + 基板の最低2層は維持
+  const removeLayer = (i: number) =>
     onChange(layers.filter((_, idx) => idx !== i));
-  };
 
   const insertPairs = () => {
     const n = Math.max(1, Math.floor(pairCount));
     const block: EditableLayer[] = [];
     for (let p = 0; p < n; p++) {
-      // [A, B] の順（A が入射側寄り）。入射側直下にまとめて積む。
+      // [A, B] の順（A が入射側寄り）。スタックの一番上にまとめて積む。
       block.push({ id: crypto.randomUUID(), ...pairA, grating: null });
       block.push({ id: crypto.randomUUID(), ...pairB, grating: null });
     }
-    const next = [...layers];
-    next.splice(1, 0, ...block);
-    onChange(next);
+    onChange([...block, ...layers]);
   };
 
   // 番号は基板側から数える（基板に接する膜が第1層、積み上げるほど大きい）。
-  const roleOf = (i: number) =>
-    i === 0
-      ? "入射側"
-      : i === layers.length - 1
-        ? "基板"
-        : `第${layers.length - 1 - i}層`;
+  // films は入射側→基板の順なので、末尾が第1層。
+  const roleOf = (i: number) => `第${layers.length - i}層`;
 
   return (
     <div className="grid gap-3">
+      {layers.length === 0 && (
+        <p className="text-xs text-neutral-400">
+          多層膜なし（入射媒質と基板の界面のみ）。下から層を追加できます。
+        </p>
+      )}
       {layers.map((layer, i) => (
         <div key={layer.id} className="rounded-lg border p-3">
           <div className="mb-2 flex items-center justify-between">
@@ -90,8 +83,7 @@ export function LayerEditor({ layers, onChange }: Props) {
             <button
               type="button"
               onClick={() => removeLayer(i)}
-              disabled={layers.length <= 2}
-              className="text-xs text-red-600 disabled:text-neutral-300"
+              className="text-xs text-red-600"
             >
               削除
             </button>
