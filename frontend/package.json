@@ -6,13 +6,15 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "gen:api": "openapi-typescript ../openapi.json -o lib/api/schema.d.ts"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.18.0",
     "next": "15.5.19",
+    "openapi-fetch": "^0.17.0",
     "radix-ui": "^1.5.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
@@ -28,6 +30,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.5.19",
+    "openapi-typescript": "^7.13.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
