@@ -1,0 +1,5 @@
+build/
+S4.egg-info/
+*.so
+*.o
+__pycache__/

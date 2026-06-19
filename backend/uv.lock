@@ -291,7 +291,7 @@ wheels = [
 [[package]]
 name = "s4"
 version = "1.1"
-source = { directory = "../../S4" }
+source = { directory = "vendor/S4" }
 
 [[package]]
 name = "s4web"
@@ -324,7 +324,7 @@ dev = [
     { name = "pyright", specifier = ">=1.1.390" },
     { name = "ruff", specifier = ">=0.8" },
 ]
-solver = [{ name = "s4", directory = "../../S4" }]
+solver = [{ name = "s4", directory = "vendor/S4" }]
 
 [[package]]
 name = "starlette"

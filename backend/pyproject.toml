@@ -18,7 +18,7 @@ dev = [
     "ruff>=0.8",
     "pyright>=1.1.390",
 ]
-# S4 はローカルの修正版リポジトリ (../../S4) からビルドする。
+# S4 は同梱した修正版ソース (vendor/S4) からビルドする。
 solver = [
     "s4",
 ]
@@ -27,7 +27,7 @@ solver = [
 default-groups = ["dev", "solver"]
 
 [tool.uv.sources]
-s4 = { path = "../../S4" }
+s4 = { path = "vendor/S4" }
 
 [build-system]
 requires = ["uv_build>=0.11.21,<0.12.0"]
