@@ -10,7 +10,6 @@ export const apiClient = createClient<paths>({ baseUrl: "/" });
 export type SimulationRequest = components["schemas"]["SimulationRequest"];
 export type SimulationResponse = components["schemas"]["SimulationResponse"];
 export type LayerDTO = components["schemas"]["LayerDTO"];
-export type GratingDTO = components["schemas"]["GratingDTO"];
 export type Polarization = components["schemas"]["Polarization"];
 
 // エディタ内部用：React の安定キーのため id を持つ層。API 送信時に id を外す。

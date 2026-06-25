@@ -10,7 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
 from s4web.domain.entities.color import ColorResult
-from s4web.domain.entities.layer import Grating, Layer
+from s4web.domain.entities.layer import Layer
 from s4web.domain.entities.material import Material
 from s4web.domain.entities.simulation import (
     Polarization,
@@ -23,31 +23,17 @@ class _CamelModel(BaseModel):
     model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
 
 
-class GratingDTO(_CamelModel):
-    n: float
-    k: float = 0.0
-    fill_factor: float
-
-
 class LayerDTO(_CamelModel):
     name: str
     thickness_nm: float
     n: float
     k: float = 0.0
-    grating: GratingDTO | None = None
 
     def to_entity(self) -> Layer:
-        grating = None
-        if self.grating is not None:
-            grating = Grating(
-                material=Material(n=self.grating.n, k=self.grating.k),
-                fill_factor=self.grating.fill_factor,
-            )
         return Layer(
             name=self.name,
             thickness_nm=self.thickness_nm,
             material=Material(n=self.n, k=self.k),
-            grating=grating,
         )
 
 
@@ -57,8 +43,6 @@ class SimulationRequest(_CamelModel):
     wl_points: int = Field(ge=1)
     theta_deg: float = 0.0
     pol: Polarization = Polarization.S
-    period_nm: float = Field(gt=0)
-    num_orders: int = Field(ge=1)
     layers: list[LayerDTO] = Field(min_length=2)
 
     def to_condition(self) -> SimulationCondition:
@@ -68,8 +52,6 @@ class SimulationRequest(_CamelModel):
             wl_points=self.wl_points,
             theta_deg=self.theta_deg,
             polarization=self.pol,
-            period_nm=self.period_nm,
-            num_orders=self.num_orders,
             layers=tuple(layer.to_entity() for layer in self.layers),
         )
 

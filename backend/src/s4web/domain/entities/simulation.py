@@ -16,9 +16,9 @@ class Polarization(StrEnum):
 
 @dataclass(frozen=True)
 class SimulationCondition:
-    """1D グレーティング / 多層膜 RCWA シミュレーションの完全な指定。
+    """平面多層膜シミュレーションの完全な指定。
 
-    波長・周期はすべて nm。層は入射側から基板側の順。
+    波長はすべて nm。層は入射側から基板側の順。
     ここを通過したインスタンスは「物理的に計算可能」であることが保証される。
     """
 
@@ -27,8 +27,6 @@ class SimulationCondition:
     wl_points: int
     theta_deg: float
     polarization: Polarization
-    period_nm: float
-    num_orders: int
     layers: tuple[Layer, ...]
 
     def __post_init__(self) -> None:
@@ -42,10 +40,6 @@ class SimulationCondition:
             raise ValueError("wl_points == 1 requires wl_min_nm == wl_max_nm")
         if not (0.0 <= self.theta_deg < 90.0):
             raise ValueError("theta_deg must be in [0, 90)")
-        if self.period_nm <= 0:
-            raise ValueError("period_nm must be positive")
-        if self.num_orders < 1:
-            raise ValueError("num_orders must be >= 1")
         if len(self.layers) < 2:
             raise ValueError("at least two layers are required (incident + substrate)")
 

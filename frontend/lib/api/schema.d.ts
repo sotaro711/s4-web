@@ -53,18 +53,6 @@ export interface components {
             /** Hex */
             hex: string;
         };
-        /** GratingDTO */
-        GratingDTO: {
-            /** N */
-            n: number;
-            /**
-             * K
-             * @default 0
-             */
-            k: number;
-            /** Fillfactor */
-            fillFactor: number;
-        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -83,7 +71,6 @@ export interface components {
              * @default 0
              */
             k: number;
-            grating?: components["schemas"]["GratingDTO"] | null;
         };
         /**
          * Polarization
@@ -106,10 +93,6 @@ export interface components {
             thetaDeg: number;
             /** @default s */
             pol: components["schemas"]["Polarization"];
-            /** Periodnm */
-            periodNm: number;
-            /** Numorders */
-            numOrders: number;
             /** Layers */
             layers: components["schemas"]["LayerDTO"][];
         };

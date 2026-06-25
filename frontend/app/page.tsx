@@ -34,19 +34,16 @@ const DEFAULT_SETTINGS: Settings = {
   wlPoints: 81,
   thetaDeg: 0,
   pol: "s",
-  periodNm: 500,
-  numOrders: 11,
 };
 
 // 既定の多層膜（films）。id は固定（SSR/ハイドレーションのズレ回避）。
 const DEFAULT_FILMS: EditableLayer[] = [
   {
-    id: "default-grating",
-    name: "grating",
+    id: "default-film",
+    name: "film",
     thicknessNm: 150,
-    n: 1.0,
+    n: 2.5,
     k: 0,
-    grating: { n: 2.5, k: 0, fillFactor: 0.5 },
   },
 ];
 
@@ -73,16 +70,15 @@ function structureLayers(
       thicknessNm: l.thicknessNm,
       n: l.n,
       k: l.k,
-      grating: l.grating,
     })),
-    { name: "基板", thicknessNm: 0, n: substrate.n, k: substrate.k, grating: null },
+    { name: "基板", thicknessNm: 0, n: substrate.n, k: substrate.k },
   ];
 }
 
 // API 用の層リスト（入射側→基板）。先頭に入射側の空気を付与する。
 function buildLayers(films: EditableLayer[], substrate: Medium): LayerDTO[] {
   return [
-    { name: "空気", thicknessNm: 0, n: INCIDENT_AIR.n, k: INCIDENT_AIR.k, grating: null },
+    { name: "空気", thicknessNm: 0, n: INCIDENT_AIR.n, k: INCIDENT_AIR.k },
     ...structureLayers(films, substrate),
   ];
 }
@@ -119,7 +115,7 @@ export default function Home() {
     <main className="mx-auto max-w-6xl p-6 font-sans">
       <h1 className="text-2xl font-bold">S4 RCWA Simulator 🪞</h1>
       <p className="mt-1 text-sm text-neutral-500">
-        多層膜・1D グレーティング構造の反射 / 透過スペクトルを計算します。
+        多層膜の反射 / 透過スペクトルを計算します。
       </p>
 
       <div className="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(420px,460px)_1fr]">
@@ -162,10 +158,7 @@ export default function Home() {
               <CardTitle className="text-base">構造の断面図</CardTitle>
             </CardHeader>
             <CardContent>
-              <StructureView
-                layers={structureLayers(films, substrate)}
-                periodNm={settings.periodNm}
-              />
+              <StructureView layers={structureLayers(films, substrate)} />
             </CardContent>
           </Card>
 

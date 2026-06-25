@@ -6,9 +6,7 @@ import { NumberInput } from "@/components/NumberInput";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { EditableLayer, GratingDTO } from "@/lib/api/client";
-
-const DEFAULT_GRATING: GratingDTO = { n: 2.0, k: 0, fillFactor: 0.5 };
+import type { EditableLayer } from "@/lib/api/client";
 
 // ペア挿入フォームの1層分（名前・厚さ・n・k）。
 type PairLayer = { name: string; thicknessNm: number; n: number; k: number };
@@ -27,14 +25,6 @@ export function LayerEditor({ layers, onChange }: Props) {
   const update = (i: number, patch: Partial<EditableLayer>) =>
     onChange(layers.map((l, idx) => (idx === i ? { ...l, ...patch } : l)));
 
-  const updateGrating = (i: number, patch: Partial<GratingDTO>) => {
-    const g = { ...(layers[i].grating ?? DEFAULT_GRATING), ...patch };
-    update(i, { grating: g });
-  };
-
-  const toggleGrating = (i: number, on: boolean) =>
-    update(i, { grating: on ? { ...DEFAULT_GRATING } : null });
-
   const addLayer = () => {
     // 積み上げ：新しい層をスタックの一番上（入射側寄り＝先頭）に追加する。
     const inserted: EditableLayer = {
@@ -43,7 +33,6 @@ export function LayerEditor({ layers, onChange }: Props) {
       thicknessNm: 100,
       n: 1.5,
       k: 0,
-      grating: null,
     };
     onChange([inserted, ...layers]);
   };
@@ -56,8 +45,8 @@ export function LayerEditor({ layers, onChange }: Props) {
     const block: EditableLayer[] = [];
     for (let p = 0; p < n; p++) {
       // [A, B] の順（A が入射側寄り）。スタックの一番上にまとめて積む。
-      block.push({ id: crypto.randomUUID(), ...pairA, grating: null });
-      block.push({ id: crypto.randomUUID(), ...pairB, grating: null });
+      block.push({ id: crypto.randomUUID(), ...pairA });
+      block.push({ id: crypto.randomUUID(), ...pairB });
     }
     onChange([...block, ...layers]);
   };
@@ -115,43 +104,6 @@ export function LayerEditor({ layers, onChange }: Props) {
               />
             </Field>
           </div>
-
-          <label className="mt-2 flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={layer.grating != null}
-              onChange={(e) => toggleGrating(i, e.target.checked)}
-            />
-            1D グレーティング
-          </label>
-
-          {layer.grating != null && (
-            <div className="mt-2 grid grid-cols-3 gap-2 rounded-md bg-neutral-50 p-2">
-              <Field label="格子 n">
-                <NumberInput
-                  step={0.01}
-                  value={layer.grating.n}
-                  onChange={(v) => updateGrating(i, { n: v })}
-                />
-              </Field>
-              <Field label="格子 k">
-                <NumberInput
-                  step={0.01}
-                  value={layer.grating.k}
-                  onChange={(v) => updateGrating(i, { k: v })}
-                />
-              </Field>
-              <Field label="fill factor">
-                <NumberInput
-                  step={0.05}
-                  min={0}
-                  max={1}
-                  value={layer.grating.fillFactor}
-                  onChange={(v) => updateGrating(i, { fillFactor: v })}
-                />
-              </Field>
-            </div>
-          )}
         </div>
         ))}
       </div>

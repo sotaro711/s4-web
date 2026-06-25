@@ -96,29 +96,6 @@
         ],
         "title": "ColorDTO"
       },
-      "GratingDTO": {
-        "properties": {
-          "n": {
-            "type": "number",
-            "title": "N"
-          },
-          "k": {
-            "type": "number",
-            "title": "K",
-            "default": 0.0
-          },
-          "fillFactor": {
-            "type": "number",
-            "title": "Fillfactor"
-          }
-        },
-        "type": "object",
-        "required": [
-          "n",
-          "fillFactor"
-        ],
-        "title": "GratingDTO"
-      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -150,16 +127,6 @@
             "type": "number",
             "title": "K",
             "default": 0.0
-          },
-          "grating": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/GratingDTO"
-              },
-              {
-                "type": "null"
-              }
-            ]
           }
         },
         "type": "object",
@@ -205,16 +172,6 @@
             "$ref": "#/components/schemas/Polarization",
             "default": "s"
           },
-          "periodNm": {
-            "type": "number",
-            "exclusiveMinimum": 0.0,
-            "title": "Periodnm"
-          },
-          "numOrders": {
-            "type": "integer",
-            "minimum": 1.0,
-            "title": "Numorders"
-          },
           "layers": {
             "items": {
               "$ref": "#/components/schemas/LayerDTO"
@@ -229,8 +186,6 @@
           "wlMin",
           "wlMax",
           "wlPoints",
-          "periodNm",
-          "numOrders",
           "layers"
         ],
         "title": "SimulationRequest"

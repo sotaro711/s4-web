@@ -80,19 +80,6 @@ export function SettingsForm({ value, onChange }: Props) {
           </SelectContent>
         </Select>
       </div>
-      <NumberField
-        label="周期 (nm)"
-        value={value.periodNm}
-        step={1}
-        onChange={(v) => onChange({ periodNm: v })}
-      />
-      <NumberField
-        label="回折次数"
-        value={value.numOrders}
-        min={1}
-        step={2}
-        onChange={(v) => onChange({ numOrders: v })}
-      />
     </div>
   );
 }
