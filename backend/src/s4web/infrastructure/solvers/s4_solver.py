@@ -39,7 +39,12 @@ class S4Solver(SolverPort):
         transmittance: list[float] = []
         for wl_nm in wls:
             wl_um = wl_nm / _NM_PER_UM
+            # 波長（周波数 = 1/λ）を設定。この時点で S4 はその波長について RCWA を解く:
+            # 各層を固有モードに分解（SolveLayerEigensystem）し、層間を散乱行列（S 行列）で
+            # 接続して全体の場を求める（S4 内部 rcwa.cpp の SolveAll）。
             sim.SetFrequency(1.0 / wl_um)
+            # GetPowerFlux は層境界のポインティングフラックス（GetZPoyntingFlux）を返す。
+            # 戻り値は (前進波パワー, 後退波パワー)。
             forw_top, back_top = sim.GetPowerFlux(S4_Layer=top_name)
             forw_bot, _ = sim.GetPowerFlux(S4_Layer=bottom_name)
             incident = forw_top.real
@@ -57,17 +62,22 @@ class S4Solver(SolverPort):
             transmittance=tuple(transmittance),
         )
 
-    def _build(self, condition: SimulationCondition):  # noqa: ANN202 (S4 の型は未公開)
+    def _build(self, condition: SimulationCondition):  
+        # noqa: ANN202 (S4 の型は未公開)
+        # RCWA の計算空間を作る。NumBasis = RCWA が保持するフーリエ次数（逆格子ベクトル G） の数。面内に周期構造が無い平面多層膜では回折次数は 0 次のみなので 1 で厳密。
+        # Lattice は次数の取り方を決めるが、0 次のみでは結果に効かないため公称値。
         sim = S4.New(
             Lattice=((_NOMINAL_PERIOD_UM, 0.0), (0.0, 0.0)),  # 1D 格子（第2ベクトルは0）
             NumBasis=1,  # 平面多層膜は 0 次のみ
         )
 
-        # 材料を先に登録する（層が参照する前に存在している必要がある）。
+        # 各材料の比誘電率 ε を登録する（RCWA はこの ε をフーリエ空間で扱う）。
+        # 層が参照する前に存在している必要があるので先に登録する。
         for i, layer in enumerate(condition.layers):
             sim.SetMaterial(Name=_mat_name(i), Epsilon=layer.material.epsilon)
 
-        # 層を入射側から順に追加する。
+        # 層を入射側から順に追加する。各層は厚さと材料（ε）を持ち、波長設定時に
+        # S4 がこの層ごとに固有モードを解く（rcwa.cpp の SolveLayerEigensystem）。
         for i, layer in enumerate(condition.layers):
             sim.AddLayer(
                 Name=_layer_name(i, layer),
@@ -75,7 +85,8 @@ class S4Solver(SolverPort):
                 S4_Material=_mat_name(i),
             )
 
-        # 平面波励起。s 偏光 → sAmplitude のみ、p 偏光 → pAmplitude のみ。
+        # 入射する平面波（境界条件）を定義する。入射角 θ と偏光を与える。
+        # s 偏光 → sAmplitude のみ、p 偏光 → pAmplitude のみ。
         if condition.polarization is Polarization.S:
             s_amp, p_amp = 1.0, 0.0
         else:
